@@ -1,0 +1,11 @@
+Package: mscatdif
+Title: Multi-Stage Computer Adaptive Test Differential Item Functioning
+Version: 1.0.0.0
+Authors@R: person("Daniel", "Lee", email = "dlee@cal.org", role = c("aut", "cre"))
+Description: Conducts DIF on items from a multi-stage CAT.
+Depends:
+    R (>= 3.2.2)
+License: None
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
