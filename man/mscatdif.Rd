@@ -4,19 +4,35 @@
 \alias{mscatdif}
 \title{Multistage CAT DIF Function}
 \usage{
-mscatdif(scored.resp, person.ability, item_difficulty, groupinfo,
-  which.focal = NULL, which.ref = NULL, item_fit = NULL,
-  item_names = NULL, outfilename = NULL, purification = FALSE,
-  FieldTest = FALSE, FTnSize = NULL)
+mscatdif(scored.resp, person.ability, item.difficulty, group.info,
+  which.focal = NULL, which.ref = NULL, item.fit = NULL,
+  item.names = NULL, outfilename = NULL, purification = FALSE,
+  field.test = FALSE, FTnSize = NULL)
 }
 \arguments{
-\item{x}{is the person data frame containing a column of individual IDs, MLE ability estimates, and scored responses.}
+\item{scored.resp}{is a matrix of scored responses.}
 
-\item{y}{is the item data frame containing item difficulties.}
+\item{person.ability}{is a vector of person ability estimates.}
 
-\item{outsave}{default is FALSE. Save a csv file of the output}
+\item{item.difficulty}{is a vector of item difficulty measures.}
 
-\item{path}{saves the output to specified location when outsave is TRUE.}
+\item{group.info}{is a vector of person demographic variable.}
+
+\item{which.focal}{is the desired focal group. Random group chosen if NULL.}
+
+\item{which.ref}{is the desired reference group. Random group chosen if NULL.}
+
+\item{item.fit}{is a vector of item fit information. Default = NULL.}
+
+\item{item.names}{is a vector of item names. Default = NULL.}
+
+\item{outfilename}{is the name of the desired .csv output file. Default = NULL.}
+
+\item{purification}{run purification? Default = FALSE.}
+
+\item{field.test}{is it a field test? Default = FALSE.}
+
+\item{FTnSize}{if !is.null(field.test) then FTnSize integer scalar must be specified.}
 }
 \description{
 This function performs DIF analysis on items from a multi-stage CAT

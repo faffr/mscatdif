@@ -5,14 +5,14 @@
 #' @param person.ability is a vector of person ability estimates.
 #' @param item.difficulty is a vector of item difficulty measures.
 #' @param group.info is a vector of person demographic variable.
-#' @param which.facal is the desired focal group. Random group chosen if NULL.
+#' @param which.focal is the desired focal group. Random group chosen if NULL.
 #' @param which.ref is the desired reference group. Random group chosen if NULL.
 #' @param item.fit is a vector of item fit information. Default = NULL.
 #' @param item.names is a vector of item names. Default = NULL. 
 #' @param outfilename is the name of the desired .csv output file. Default = NULL.
-#' @oaram purification run purification? Default = FALSE.
+#' @param purification run purification? Default = FALSE.
 #' @param field.test is it a field test? Default = FALSE.
-#' @param FTnSize if '!is.null(field.test) FTnSize integer scalar must be specified.  
+#' @param FTnSize if !is.null(field.test) then FTnSize integer scalar must be specified.  
 #' @keywords DIF multistage CAT
 #' @export
 #' @examples
