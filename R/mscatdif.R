@@ -1,10 +1,18 @@
 #' Multistage CAT DIF Function
 #'
 #' This function performs DIF analysis on items from a multi-stage CAT
-#' @param x is the person data frame containing a column of individual IDs, MLE ability estimates, and scored responses.
-#' @param y is the item data frame containing item difficulties.
-#' @param outsave default is FALSE. Save a csv file of the output
-#' @param path saves the output to specified location when outsave is TRUE.
+#' @param scored.resp is a matrix of scored responses.
+#' @param person.ability is a vector of person ability estimates.
+#' @param item.difficulty is a vector of item difficulty measures.
+#' @param group.info is a vector of person demographic variable.
+#' @param which.facal is the desired focal group. Random group chosen if NULL.
+#' @param which.ref is the desired reference group. Random group chosen if NULL.
+#' @param item.fit is a vector of item fit information. Default = NULL.
+#' @param item.names is a vector of item names. Default = NULL. 
+#' @param outfilename is the name of the desired .csv output file. Default = NULL.
+#' @oaram purification run purification? Default = FALSE.
+#' @param field.test is it a field test? Default = FALSE.
+#' @param FTnSize if '!is.null(field.test) FTnSize integer scalar must be specified.  
 #' @keywords DIF multistage CAT
 #' @export
 #' @examples
@@ -15,34 +23,34 @@
 #' ItemMeas = rnorm(10, 0, 1)
 #' mscatdif(ItemData, PersMeas, ItemMeas, DemogGroup)
 
-mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, which.focal = NULL, which.ref = NULL, item_fit = NULL, item_names = NULL, outfilename = NULL, purification = FALSE, FieldTest = FALSE, FTnSize = NULL){
+mscatdif = function(scored.resp, person.ability, item.difficulty, group.info, which.focal = NULL, which.ref = NULL, item.fit = NULL, item.names = NULL, outfilename = NULL, purification = FALSE, field.test = FALSE, FTnSize = NULL){
 
-  if(is.null(which.focal)){which.focal = names(table(groupinfo) )[1]} #whichever comes first in alphabet
-  if(is.null(which.ref)){which.ref = names(table(groupinfo) )[2]}
+  if(is.null(which.focal)){which.focal = names(table(group.info) )[1]} #whichever comes first in alphabet
+  if(is.null(which.ref)){which.ref = names(table(group.info) )[2]}
   if(!is.null(outfilename)){outfilename = paste0(outfilename,".csv")}
-  if(is.null(item_names)){item_names = paste0("Item ", seq(1:length(item_difficulty))) }
-  if(FieldTest == TRUE){FTdifficulty = item_difficulty[1:FTnSize]}
-  if(FieldTest == TRUE){item_difficulty = item_difficulty[(FTnSize+1):length(item_difficulty)]}
+  if(is.null(item.names)){item.names = paste0("Item ", seq(1:length(item.difficulty))) }
+  if(field.test == TRUE){FTdifficulty = item.difficulty[1:FTnSize]}
+  if(field.test == TRUE){item.difficulty = item.difficulty[(FTnSize+1):length(item.difficulty)]}
 
   #CREATE A DATA.FRAME FOR ALL RESP, ABILITY, AND GROUP
-  alldata <- data.frame(scored.resp, measure = person.ability, groupinfo = groupinfo )
+  alldata <- data.frame(scored.resp, measure = person.ability, group.info = group.info )
 
-  alldata[,"groupinfo"] <- as.character(alldata[,"groupinfo"])
+  alldata[,"group.info"] <- as.character(alldata[,"group.info"])
 
   #RENAME THE SCORED RESPONSE COLUMNS
   colnames(alldata)[1:ncol(scored.resp)] = paste0( "X" , seq(1,ncol(scored.resp)) )
 
   #CREATE THE EXPECTED SCORE VALUE FOR EVERY EXAMINEE
-  alldata[,"expected"] = apply(sapply(item_difficulty,function(x) 1/(1+exp(-(person.ability-x)))),1,sum)
+  alldata[,"expected"] = apply(sapply(item.difficulty,function(x) 1/(1+exp(-(person.ability-x)))),1,sum)
 
   #RELABEL GROUP BASED ON FOCAL.NAME
   #NOTE THAT ALL MISSING DATA MUST BE REMOVED PRIOR
-  alldata$groupinfo[as.character(alldata$groupinfo) == which.focal] <- 1
-  alldata$groupinfo[as.character(alldata$groupinfo) == which.ref] <- 0
+  alldata$group.info[as.character(alldata$group.info) == which.focal] <- 1
+  alldata$group.info[as.character(alldata$group.info) == which.ref] <- 0
 
   #NUMBER OF ITEMS
-  its = length(item_difficulty)
-  if(FieldTest == TRUE){its = FTnSize}
+  its = length(item.difficulty)
+  if(field.test == TRUE){its = FTnSize}
 
   #FINAL DATA FRAME WHERE MH STATISTICS IS TO BE COLLECTED
 
@@ -61,7 +69,7 @@ mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, whi
       #SUBSET INDIVIDUALS THAT HAVE RESPONSES FOR ITEM i
       nomissing = subset(alldata,!is.na(alldata[,i]))
 
-      if(FieldTest == TRUE){
+      if(field.test == TRUE){
         #ADD FT ITEM i RESPONSE SCORE TO THE "expected" score
         nomissing[,"expected"] = nomissing[,"expected"] + nomissing[,paste0("X",i)]
       }
@@ -71,10 +79,10 @@ mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, whi
 
 
       #SUBSET FOCAL: FEMALES AND REFERENCE: MALES/ FOCAL: HISP AND REFERENCE: NON-HISPANICS AND CREATE A NUMERIC CATEGORY
-      dataR = subset(nomissing,nomissing[,"groupinfo"]=="0")
+      dataR = subset(nomissing,nomissing[,"group.info"]=="0")
       dataR[,"expected_cat_numeric"] = as.numeric(dataR[,"expected_cat"])
 
-      dataF = subset(nomissing,nomissing[,"groupinfo"]=="1")
+      dataF = subset(nomissing,nomissing[,"group.info"]=="1")
       dataF[,"expected_cat_numeric"] = as.numeric(dataF[,"expected_cat"])
 
       #GET THE MAX NUMBER OF CATEGORIES
@@ -186,14 +194,14 @@ mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, whi
       MHdataframe[i, paste0("N: ",which.focal)] = nrow(dataF)
 
       #ATTACH ITEM NAMES
-      MHdataframe[i,"Names"] = item_names[MHdataframe$"Item"[i]]
+      MHdataframe[i,"Names"] = item.names[MHdataframe$"Item"[i]]
 
       #PROPORTION CORRECT BY GROUP
       MHdataframe[i, paste0("Prop. ",which.ref)] = round(sum(as.numeric(dataR[,i] )/nrow(dataR) ), 3)
       MHdataframe[i, paste0("Prop. ",which.focal)] = round(sum(as.numeric(dataF[,i]) )/nrow(dataF) ,3)
 
       #ITEM DIFFICULTY
-      if(FieldTest == TRUE){MHdataframe[i, "Difficulty"] = FTdifficulty[i]}else{MHdataframe[i, "Difficulty"] = item_difficulty[i]}
+      if(field.test == TRUE){MHdataframe[i, "Difficulty"] = FTdifficulty[i]}else{MHdataframe[i, "Difficulty"] = item.difficulty[i]}
 
 
       #OVERALL PROP. CORRECT
@@ -205,8 +213,8 @@ mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, whi
 
 
       #INFIT/OUTFIT STATISTICS
-      if(!is.null(item_fit) ) {MHdataframe[i, "IN.MSQ"] = item_fit[i,1]}
-      if(!is.null(item_fit) ) {MHdataframe[i, "OUT.MSQ"] = item_fit[i,2]}
+      if(!is.null(item.fit) ) {MHdataframe[i, "IN.MSQ"] = item.fit[i,1]}
+      if(!is.null(item.fit) ) {MHdataframe[i, "OUT.MSQ"] = item.fit[i,2]}
 
 
 
@@ -302,12 +310,12 @@ mscatdif = function(scored.resp, person.ability, item_difficulty, groupinfo, whi
 
     #REMOVE ITEMS THAT DISPLAY c-LEVEL DIF FROM ITEM FILE
 
-    item_difficulty <- item_difficulty[-cleveldif]
-    item_names <- item_names[-cleveldif]
+    item.difficulty <- item.difficulty[-cleveldif]
+    item.names <- item.names[-cleveldif]
 
     #RECALCULATE EXPECTED SCORE WITHOUT C-LEVEL ITEMS
 
-    alldata[,"expected"] <- apply(sapply(item_difficulty, function(x) 1/(1+exp(-(person.ability-x)))),1,sum)
+    alldata[,"expected"] <- apply(sapply(item.difficulty, function(x) 1/(1+exp(-(person.ability-x)))),1,sum)
 
     #REMOVE ITEMS THAT DISPLAY C-LEVEL DIF FROM SCORED RESPONSE FILE
 
