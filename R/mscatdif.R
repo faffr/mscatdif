@@ -71,7 +71,7 @@ mscatdif = function(scored.resp, person.ability, item.difficulty, group.info, wh
 
       if(field.test == TRUE){
         #ADD FT ITEM i RESPONSE SCORE TO THE "expected" score
-        nomissing[,"expected"] = nomissing[,"expected"] + nomissing[,paste0("X",i)]
+        nomissing[,"expected"] = nomissing[,"expected"] + nomissing[,i]
       }
 
       #CREATE GROUPS OF EXPECTED SCORES BY UNITS OF 2 FROM 0 TO #OF ITEMS
@@ -327,7 +327,7 @@ mscatdif = function(scored.resp, person.ability, item.difficulty, group.info, wh
 
     #CREATE A NEW DATA FRAME FOR PURIFICATION
 
-    MH_collection2 = data.frame(nocleveldif)
+    MH_collection2 = data.frame(1:length(nocleveldif))
 
     #RUN THE MH FUNCTION
 
@@ -341,7 +341,11 @@ mscatdif = function(scored.resp, person.ability, item.difficulty, group.info, wh
 
     MH_collection2 <- rbind(MH_collection2, MH_collection1[c(cleveldif),])
 
-    MH_collection2 <- MH_collection2[order(MH_collection2[,"Item"]), ]
+    # REORDER ITEMS TO ORIGINAL ORDER
+    MH_collection2 <- MH_collection2[order(match(MH_collection2[,"Names"],MH_collection1[,"Names"])),]
+    
+    # FIX ITEM ORDER AGAIN
+    MH_collection2[,"Item"] <- 1:(its+length(cleveldif))
 
     if( !is.null(outfilename) ){
       write.table(MH_collection2,outfilename,sep=",",row.names=FALSE);return(MH_collection2)
